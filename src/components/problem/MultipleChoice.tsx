@@ -106,7 +106,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
 
       {/* Choices */}
       <div className="flex-1 overflow-auto px-4 pb-4">
-        <div className="space-y-3">
+        <div className="space-y-3" role="radiogroup" aria-label="답안 선택">
           {choices.map((choice, index) => (
             <motion.button
               key={index}
@@ -117,6 +117,9 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
+              role="radio"
+              aria-checked={selectedIndex === index}
+              aria-label={`선택지 ${String.fromCharCode(65 + index)}: ${choice}`}
             >
               <div className="flex items-start gap-3">
                 {getChoiceIcon(index)}

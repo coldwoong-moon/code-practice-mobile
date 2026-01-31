@@ -60,12 +60,12 @@ export const CodeFillBlank: React.FC<CodeFillBlankProps> = ({
   };
 
   const renderCodeWithBlanks = () => {
-    const parts = code.split(/(\{\{\d+\}\})/g);
+    const parts = code.split(/(\{\{BLANK_\d+\}\})/g);
 
     return parts.map((part, index) => {
-      const match = part.match(/\{\{(\d+)\}\}/);
+      const match = part.match(/\{\{BLANK_(\d+)\}\}/);
       if (match) {
-        const blankIndex = parseInt(match[1], 10);
+        const blankIndex = parseInt(match[1], 10) - 1; // Convert BLANK_1 to index 0
         const answer = answers[blankIndex];
         const isActive = activeBlankIndex === blankIndex;
 
@@ -87,6 +87,7 @@ export const CodeFillBlank: React.FC<CodeFillBlankProps> = ({
             disabled={submitted}
             className={`inline-flex items-center justify-center min-w-[80px] px-3 py-1 mx-1 rounded border-2 ${bgColor} transition-colors`}
             whileTap={submitted ? {} : { scale: 0.95 }}
+            aria-label={`빈칸 ${blankIndex + 1} - ${answer !== null ? blanks[blankIndex].options[answer] : '클릭하여 답 선택'}`}
           >
             <span className="text-sm font-mono text-white">
               {answer !== null ? blanks[blankIndex].options[answer] : '___'}
@@ -158,12 +159,15 @@ export const CodeFillBlank: React.FC<CodeFillBlankProps> = ({
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="fixed bottom-0 left-0 right-0 bg-gray-800 rounded-t-2xl shadow-2xl z-50"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="options-sheet-title"
             >
               <div className="p-4">
                 {/* Handle */}
                 <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
 
-                <h3 className="text-lg font-semibold text-white mb-4">
+                <h3 id="options-sheet-title" className="text-lg font-semibold text-white mb-4">
                   빈칸 {activeBlankIndex + 1} 선택
                 </h3>
 

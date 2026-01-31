@@ -70,6 +70,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
       ref={setNodeRef}
       style={style}
       className={`touch-none ${isDragging ? 'z-50' : 'z-0'}`}
+      role="listitem"
+      aria-grabbed={isDragging}
     >
       <motion.div
         animate={{
@@ -85,12 +87,14 @@ const SortableItem: React.FC<SortableItemProps> = ({
           {...attributes}
           {...listeners}
           className="flex-shrink-0 pt-1 cursor-grab active:cursor-grabbing touch-none"
+          aria-label="드래그하여 순서 변경"
         >
           <svg
             className="w-6 h-6 text-gray-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -216,7 +220,7 @@ export const DragDropCode: React.FC<DragDropCodeProps> = ({
             items={items.map((item) => item.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-3">
+            <div className="space-y-3" role="list" aria-label="정렬 가능한 코드 블록 목록">
               {items.map((item, index) => (
                 <SortableItem
                   key={item.id}
