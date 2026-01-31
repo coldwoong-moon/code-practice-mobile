@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { getProblemById, allProblems } from '@/data/problems';
 import type { Problem } from '@/data/problems';
-import { CodeFillBlank } from '@/components/problem/CodeFillBlank';
+import { CodeFillBlank, DragDropCode, MultipleChoice } from '@/components/problem';
 import { ArrowLeft, Lightbulb, CheckCircle2, XCircle, ChevronRight, Sparkles } from 'lucide-react';
 
 export default function ProblemDetailPage() {
@@ -20,7 +20,6 @@ export default function ProblemDetailPage() {
   const [showHint, setShowHint] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const foundProblem = getProblemById(problemId);
@@ -29,9 +28,8 @@ export default function ProblemDetailPage() {
     }
   }, [problemId]);
 
-  const handleComplete = (correct: boolean, answers: Record<string, string>) => {
+  const handleComplete = (correct: boolean) => {
     setIsCorrect(correct);
-    setUserAnswers(answers);
     setShowResult(true);
   };
 
@@ -44,8 +42,11 @@ export default function ProblemDetailPage() {
   const handleRetry = () => {
     setShowResult(false);
     setIsCorrect(false);
-    setUserAnswers({});
     setShowHint(false);
+    // Force re-render by updating the problem state
+    if (problem) {
+      setProblem({ ...problem });
+    }
   };
 
   if (!problem) {
@@ -121,32 +122,43 @@ export default function ProblemDetailPage() {
           </Card>
 
           {/* Problem Component */}
-          <Card className="bg-white/90 backdrop-blur-sm border-2 border-white shadow-lg">
-            <div className="p-6">
-              {problem.type === 'FILL_BLANK' && problem.code && problem.blanks && (
-                <div className="text-center py-8 text-muted">
-                  <p className="font-medium mb-4">빈칸 채우기 컴포넌트는 곧 업데이트됩니다</p>
-                  <div className="bg-gray-900 rounded-lg p-4 text-left">
-                    <pre className="text-sm text-gray-100 font-mono whitespace-pre-wrap">
-                      {problem.code}
-                    </pre>
-                  </div>
-                </div>
-              )}
+          {!showResult && (
+            <Card className="bg-white/90 backdrop-blur-sm border-2 border-white shadow-lg overflow-hidden">
+              <div className="p-6">
+                {problem.type === 'FILL_BLANK' && problem.code && problem.blanks && (
+                  <CodeFillBlank
+                    code={problem.code}
+                    blanks={Object.values(problem.blanks).map(blank => ({
+                      options: blank.options,
+                      correct: blank.correctIndex
+                    }))}
+                    onComplete={(isCorrect) => handleComplete(isCorrect)}
+                  />
+                )}
 
-              {problem.type === 'DRAG_DROP' && (
-                <div className="text-center py-8 text-muted">
-                  <p className="font-medium">드래그 앤 드롭 컴포넌트는 곧 구현됩니다</p>
-                </div>
-              )}
+                {problem.type === 'DRAG_DROP' && problem.codeBlocks && problem.correctOrder && (
+                  <DragDropCode
+                    blocks={problem.codeBlocks.map(block => ({
+                      id: block.id,
+                      code: block.content
+                    }))}
+                    correctOrder={problem.correctOrder}
+                    onComplete={(isCorrect) => handleComplete(isCorrect)}
+                  />
+                )}
 
-              {problem.type === 'MULTIPLE_CHOICE' && (
-                <div className="text-center py-8 text-muted">
-                  <p className="font-medium">객관식 컴포넌트는 곧 구현됩니다</p>
-                </div>
-              )}
-            </div>
-          </Card>
+                {problem.type === 'MULTIPLE_CHOICE' && problem.choices && typeof problem.correctIndex === 'number' && (
+                  <MultipleChoice
+                    question={problem.question || problem.description}
+                    choices={problem.choices}
+                    correctIndex={problem.correctIndex}
+                    explanation={problem.explanation || ''}
+                    onAnswer={(isCorrect) => handleComplete(isCorrect)}
+                  />
+                )}
+              </div>
+            </Card>
+          )}
 
           {/* Hint Button */}
           {!showResult && (
